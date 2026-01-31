@@ -62,34 +62,17 @@
             const linkEl = document.getElementById('download-link');
 
             try {
-                const response = await fetch('publish/');
-                const html = await response.text();
-
-                // GitHub Pages возвращает HTML с листингом директории
-                // Ищем ссылки на файлы (исключая ../ и директории)
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const links = Array.from(doc.querySelectorAll('a'))
-                    .map(a => a.getAttribute('href'))
-                    .filter(href => href && !href.startsWith('..') && !href.endsWith('/'));
-
-                if (links.length === 0) {
-                    // Fallback: пробуем известные имена файлов
-                    const knownFiles = ['book.epub', 'book.pdf', 'book.fb2'];
-                    for (const file of knownFiles) {
-                        const check = await fetch('publish/' + file, { method: 'HEAD' });
-                        if (check.ok) {
-                            links.push(file);
-                            break;
-                        }
-                    }
+                const response = await fetch('publish/files.json');
+                if (!response.ok) {
+                    throw new Error('Книга не найдена');
                 }
+                const files = await response.json();
 
-                if (links.length === 0) {
+                if (files.length === 0) {
                     throw new Error('Книга не найдена');
                 }
 
-                const bookFile = links[0];
+                const bookFile = files[0];
                 const bookUrl = 'publish/' + bookFile;
 
                 // Показываем ручную ссылку

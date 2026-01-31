@@ -2,10 +2,12 @@
 
 publish:
 	@# Проверяем наличие книги в publish/
-	@if [ -z "$$(ls -A publish/ 2>/dev/null)" ]; then \
+	@if [ -z "$$(ls publish/*.epub publish/*.pdf publish/*.fb2 2>/dev/null)" ]; then \
 		echo "Ошибка: папка publish/ пуста. Добавьте книгу (epub, pdf, fb2)."; \
 		exit 1; \
 	fi
+	@# Генерируем список файлов
+	@ls -1 publish/*.epub publish/*.pdf publish/*.fb2 2>/dev/null | xargs -n1 basename | jq -R -s 'split("\n") | map(select(length > 0))' > publish/files.json
 	@echo "Публикация сайта..."
 	git add -A
 	git commit -m "Publish book" || echo "Нет изменений для коммита"

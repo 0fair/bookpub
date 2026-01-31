@@ -10,13 +10,8 @@ publish:
 	git add -A
 	git commit -m "Publish book" || echo "Нет изменений для коммита"
 	git push origin main
-	@# Включаем GitHub Pages если ещё не включен
-	gh repo edit --enable-wiki=false 2>/dev/null || true
-	gh api -X PUT /repos/{owner}/{repo}/pages \
-		-f source.branch=main \
-		-f source.path=/ 2>/dev/null || \
-	gh api -X POST /repos/{owner}/{repo}/pages \
-		-f source.branch=main \
-		-f source.path=/ 2>/dev/null || true
+	@# Включаем GitHub Pages если ещё не включён
+	@gh api repos/:owner/:repo/pages --silent 2>/dev/null || \
+		gh api -X POST repos/:owner/:repo/pages -f "build_type=legacy" -f "source[branch]=main" -f "source[path]=/" --silent 2>/dev/null || true
 	@echo "Готово! Сайт будет доступен через 1-2 минуты по адресу:"
-	@gh repo view --json url -q '.url' | sed 's|github.com|github.io|; s|.com/|.io/|'
+	@gh api repos/:owner/:repo/pages --jq '.html_url' 2>/dev/null || echo "https://$$(gh api repos/:owner/:repo --jq '.owner.login').github.io/$$(gh api repos/:owner/:repo --jq '.name')/"
